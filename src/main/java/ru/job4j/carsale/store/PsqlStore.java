@@ -6,9 +6,16 @@ import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import ru.job4j.carsale.models.*;
 
+import java.awt.image.AreaAveragingScaleFilter;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
@@ -53,6 +60,30 @@ public class PsqlStore implements Store {
     @Override
     public List<Advertisement> findAllAdvertisements() {
         return tx(session -> session.createQuery("from ru.job4j.carsale.models.Advertisement").list());
+    }
+
+    @Override
+    public List<Advertisement> findAdvertisementsByParams(Integer brandId, boolean withPhoto, boolean lastDate) {
+        return tx(session -> {
+            DetachedCriteria criteria = DetachedCriteria.forClass(Advertisement.class);
+            if (withPhoto) {
+                criteria.add(Restrictions.isNotNull("photo"));
+            }
+            if (lastDate) {
+                try {
+                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                    String date = format.format(new Date(System.currentTimeMillis()));
+                    Date toDate = new SimpleDateFormat("yyyy-MM-dd").parse(date);
+                    criteria.add(Restrictions.eq("createdDate", toDate));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (brandId != null) {
+                criteria.createCriteria("model").createCriteria("brand").add(Restrictions.eq("id", brandId));
+            }
+            return (List<Advertisement>) criteria.getExecutableCriteria(session).list();
+        });
     }
 
     @Override

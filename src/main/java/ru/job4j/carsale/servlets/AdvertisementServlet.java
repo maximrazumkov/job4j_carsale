@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
+import java.sql.Date;
 import java.util.List;
 
 public class AdvertisementServlet extends HttpServlet {
@@ -52,7 +53,10 @@ public class AdvertisementServlet extends HttpServlet {
         String id = req.getParameter("id");
         String jsonString;
         if (id == null) {
-            List<Advertisement> advertisementList = PsqlStore.instOf().findAllAdvertisements();
+            Integer brandId = req.getParameter("brandId") != null ? Integer.valueOf(req.getParameter("brandId")) : null;
+            boolean withPhoto = req.getParameter("withPhoto") != null ? Boolean.valueOf(req.getParameter("withPhoto")) : null;
+            boolean lastDate = req.getParameter("lastDate") != null ? Boolean.valueOf(req.getParameter("lastDate")) : null;
+            List<Advertisement> advertisementList = PsqlStore.instOf().findAdvertisementsByParams(brandId, withPhoto, lastDate);
             jsonString = new Gson().toJson(advertisementList);
         } else {
             Advertisement advertisement =  PsqlStore.instOf().findAdvertisementById(Integer.valueOf(id));
@@ -79,6 +83,7 @@ public class AdvertisementServlet extends HttpServlet {
             Integer userId = (Integer) sc.getAttribute("userUUID");
             advertisement.setUser(new User(userId));
             advertisement.setStatus(new Status(2));
+            advertisement.setCreatedDate(new Date(System.currentTimeMillis()));
             PsqlStore.instOf().createAdvertisement(advertisement);
         } catch (FileUploadException e) {
             e.printStackTrace();

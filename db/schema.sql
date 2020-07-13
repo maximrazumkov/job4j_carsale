@@ -52,3 +52,5 @@ create table advertisement (
     year_issue int,
     photo text
 )
+
+ALTER TABLE advertisement ADD COLUMN create_date date;

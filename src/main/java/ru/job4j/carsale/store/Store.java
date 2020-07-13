@@ -5,6 +5,7 @@ import ru.job4j.carsale.models.*;
 import java.util.List;
 
 public interface Store {
+    List<Advertisement> findAdvertisementsByParams(Integer brandId, boolean withPhoto, boolean currDate);
     List<Advertisement> findAllAdvertisements();
     List<Brand> findAllBrands();
     List<Model> findModelByBrandId(Integer brandId);
